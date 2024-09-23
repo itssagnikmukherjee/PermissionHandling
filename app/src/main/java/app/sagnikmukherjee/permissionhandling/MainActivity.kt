@@ -32,7 +32,7 @@ class MainActivity : ComponentActivity() {
         setContent {
             PermissionHandlingTheme {
                 Scaffold(modifier = Modifier.fillMaxSize()) { innerPadding ->
-                    test()
+                    Test()
                 }
             }
         }
@@ -40,31 +40,33 @@ class MainActivity : ComponentActivity() {
 }
 
 @Composable
-fun test() {
+fun Test() {
     Column(
         modifier = Modifier.fillMaxSize(),
         horizontalAlignment = Alignment.CenterHorizontally,
         verticalArrangement = Arrangement.Center
     ) {
-        val permission = listOf(
+        val permissions = listOf(
             android.Manifest.permission.CAMERA,
             android.Manifest.permission.RECORD_AUDIO
         )
-        var isGranted by remember { mutableStateOf(false) }
-        val launch = rememberLauncherForActivityResult(
-            contract = ActivityResultContracts.RequestPermission(), onResult = {
-                isGranted = it
-            }
-        )
-        if (isGranted) {
-            Text("Camera Permission granted")
+        var permissionsGranted by remember { mutableStateOf(false) }
+
+        val launcher = rememberLauncherForActivityResult(
+            contract = ActivityResultContracts.RequestMultiplePermissions()
+        ) { results ->
+            permissionsGranted = results.all { it.value } // Check if all permissions are granted
+        }
+
+        if (permissionsGranted) {
+            Text("Camera and Audio Permissions granted")
         } else {
             Button(
                 onClick = {
-                    launch.launch(permission)
+                    launcher.launch(permissions.toTypedArray())
                 }
             ) {
-                Text("Get Permission")
+                Text("Get Permissions")
             }
         }
     }
