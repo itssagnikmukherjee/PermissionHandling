@@ -46,7 +46,10 @@ fun test() {
         horizontalAlignment = Alignment.CenterHorizontally,
         verticalArrangement = Arrangement.Center
     ) {
-        val permission = android.Manifest.permission.CAMERA
+        val permission = listOf(
+            android.Manifest.permission.CAMERA,
+            android.Manifest.permission.RECORD_AUDIO
+        )
         var isGranted by remember { mutableStateOf(false) }
         val launch = rememberLauncherForActivityResult(
             contract = ActivityResultContracts.RequestPermission(), onResult = {
