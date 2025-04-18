@@ -26,6 +26,7 @@ import androidx.lifecycle.Lifecycle
 import androidx.lifecycle.LifecycleEventObserver
 
 @RequiresApi(Build.VERSION_CODES.TIRAMISU)
+
 @Composable
 fun PermissionHandler() {
     val context = LocalContext.current
