@@ -1,5 +1,5 @@
 package app.sagnikmukherjee.permissionhandling
-import android.app.AlertDialog
+
 import android.content.Intent
 import android.content.pm.PackageManager
 import android.net.Uri
@@ -9,7 +9,7 @@ import androidx.activity.compose.rememberLauncherForActivityResult
 import androidx.activity.result.contract.ActivityResultContracts
 import androidx.annotation.RequiresApi
 import androidx.compose.material3.AlertDialog
-import androidx.compose.material3.Button
+import android.Manifest
 import androidx.compose.material3.Text
 import androidx.compose.material3.TextButton
 import androidx.compose.runtime.Composable
@@ -32,13 +32,14 @@ fun PermissionHandler() {
     val lifecycleOwner = LocalLifecycleOwner.current
 
     var showDialog by remember { mutableStateOf(false) }
+    var permissionRequested by remember { mutableStateOf(false) }
     var initialPermissionsGranted by remember { mutableStateOf(false) }
 
     val initialPermissions = listOf(
-        android.Manifest.permission.CAMERA,
-        android.Manifest.permission.RECORD_AUDIO,
-        android.Manifest.permission.POST_NOTIFICATIONS,
-        android.Manifest.permission.READ_MEDIA_AUDIO
+        Manifest.permission.CAMERA,
+        Manifest.permission.RECORD_AUDIO,
+        Manifest.permission.POST_NOTIFICATIONS,
+        Manifest.permission.READ_MEDIA_AUDIO
     )
 
     val initialLauncher = rememberLauncherForActivityResult(
@@ -46,20 +47,23 @@ fun PermissionHandler() {
     ) { results ->
         initialPermissionsGranted = results.all { it.value }
 
-        val audioGranted = results[android.Manifest.permission.READ_MEDIA_AUDIO] == true
+        val audioGranted = results[Manifest.permission.READ_MEDIA_AUDIO] == true
         showDialog = !audioGranted
+        permissionRequested = true
     }
 
-    // Observe lifecycle to detect when user returns from Settings
+
     DisposableEffect(Unit) {
         val observer = LifecycleEventObserver { _, event ->
-            if (event == Lifecycle.Event.ON_RESUME) {
-                val permission = ContextCompat.checkSelfPermission(
+            if (event == Lifecycle.Event.ON_RESUME && permissionRequested) {
+                val audioGranted = ContextCompat.checkSelfPermission(
                     context,
-                    android.Manifest.permission.READ_MEDIA_AUDIO
-                )
-                if (permission == PackageManager.PERMISSION_GRANTED) {
-                    showDialog = false
+                    Manifest.permission.READ_MEDIA_AUDIO
+                ) == PackageManager.PERMISSION_GRANTED
+
+                showDialog = !audioGranted
+                initialPermissionsGranted = initialPermissions.all {
+                    ContextCompat.checkSelfPermission(context, it) == PackageManager.PERMISSION_GRANTED
                 }
             }
         }
@@ -99,7 +103,9 @@ fun PermissionHandler() {
                 }
             },
             title = { Text("Permission Required") },
-            text = { Text("This app needs access to media audio to work properly. Please enable it in settings.") },
+            text = {
+                Text("This app needs access to Media Audio to work properly. Please enable it in Settings.")
+            }
         )
     }
 }
